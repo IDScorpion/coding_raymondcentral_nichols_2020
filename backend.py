@@ -1,20 +1,45 @@
 # TODO: write code
-# TODO: Add backup and restore, comments
+# TODO: Add backup and restore
+# TODO: comments
+# TODO: Add deletion of students
+# TODO: Add report generation: CSA hours per student, Community Service Award program categories and total hours.
 
 from os import path, mkdir
 import dataset
+import random
 
 
 class Student:  # defines what makes a student
-    def __init__(self, student_id, name, grade, csa_level, csa_hours = 0):
-        self.student_id = student_id
+    def __init__(self, name, grade, csa_hours=0):
+        self.student_id = create_ids(name)
         self.name = name
         self.grade = grade
-        self.csa_level = csa_level
+        self.csa_level = 'None'
         self.csa_hours = csa_hours
 
-    def __call__(self):
+    def __call__(self):  # makes the function callable
         pass
+
+
+def create_ids(name):  # creates randomized 8 digit ids
+    table = return_table()
+    possible_id = random.randint(10000000, 99999999)  # 8 digit number gen
+    name_check = table.find(name=name)  # Checks if name is in database
+    student_list = []  # Creates student list
+    for row in name_check:
+        student_list.append(dict(row))  # Appends each row from name_check
+    if student_list:  # If student_list is truthy(has a value), gets the ID from it and returns it
+        final_id = student_list[0]['student_id']
+        return final_id
+    elif not student_list:  # Continues with id generation if student_list is falsy
+        id_check = table.find(student_id=possible_id)  # Checks to make sure ID is unique
+        student_list = []
+        for row in id_check:
+            student_list.append(dict(row))
+        if student_list:
+            create_ids(name)  # Tries again if ID isn't unique
+        elif not student_list:  # If the ID is unique, returns ID
+            return possible_id
 
 
 def create_file(name):  # acts as simple way to create files
@@ -27,7 +52,8 @@ def setup():  # first time setup
         mkdir(r"data")  # makes data directory
     if path.exists(r"data\Students.db") is False:
         db_location = r"data\Students.db"
-        create_file(db_location)
+        create_file(db_location)  # creates file
+    graduate_csa_levels()  # Used so on every run the CSA levels are updated
 
 
 def return_table():  # Returns the Students table
@@ -37,7 +63,7 @@ def return_table():  # Returns the Students table
     return table
 
 
-def get_query_type(query): # Interprets the query type (ID, Grade, CSA Level, Name, or Student obj.) TODO: Add CSA HOURS
+def get_query_type(query):  # Interprets query type (ID, Grade, CSA Level, Name, or Student obj.)
     try:
         int(str(query))
         if len(str(query)) == 8:
@@ -45,9 +71,9 @@ def get_query_type(query): # Interprets the query type (ID, Grade, CSA Level, Na
         else:
             query_type = 'grade'
     except ValueError:
-        if callable(query):
+        if callable(query):  # Checks to see if query is a Student object; these need special treatment
             query_type = 'student object'
-        elif query.lower() in ('community','service','achievement'):
+        elif query.lower() in ('none', 'community', 'service', 'achievement'):
             query_type = 'csa_level'
         else:
             query_type = 'name'
@@ -55,9 +81,8 @@ def get_query_type(query): # Interprets the query type (ID, Grade, CSA Level, Na
     return query_type
 
 
-def search_table(query):
-    query_type = get_query_type(query)
-    print(query_type)
+def search_table(query):  # Searches table and creates a Student object with result, or returns None if no results.
+    query_type = get_query_type(query)  # Gets the type of query so we know what column to look in
     if query_type == 'id':
         table = return_table()
         student = table.find(student_id=query)
@@ -70,7 +95,6 @@ def search_table(query):
         student = table.find(grade=query)
         student_list = []
         for row in student:
-            print(row)
             student_list.append(dict(row))
 
     elif query_type == 'csa_level':
@@ -87,47 +111,42 @@ def search_table(query):
         for row in student:
             student_list.append(dict(row))
 
-    elif query_type == 'student object':
-        print(query)
+    elif query_type == 'student object':  # Similar to if ID
         table = return_table()
         student = table.find(student_id=query.student_id)
         student_list = []
         for row in student:
             student_list.append(dict(row))
-        print(student_list)
 
-    if len(student_list) >= 2:
+    # noinspection PyUnboundLocalVariable
+    if len(student_list) >= 2:  # Provides for if 2 or more results are found.
         name_list = []
         for item in student_list:
             name_list.append(item['name'])
         student = input("Which student are you looking for? {} Type a number based on list position,"
-                        " left to right, starting at 1: ".format(name_list))
+                        " left to right, starting at 1: ".format(name_list))  # TODO: Remove when GUI ready
         list_index = int(student) - 1
-        print(student_list)
-        print(list_index)
         student_list[list_index].pop('id')
-        print(student_list[list_index])
         student = build_student(student_list[list_index])
         return student
-    student_list[0].pop('id')
-    student = build_student(student_list[0])
-    return student
+    try:
+        student_list[0].pop('id')  # Gets rid of database ID number, not needed in student object
+        student = build_student(student_list[0])
+        return student
+    except IndexError:
+        return None
 
 
 def build_student(student_data):  # builds a student from data list or dict
     if isinstance(student_data, dict):
-        student = Student(student_data['student_id'], student_data['name'], student_data['grade'],
-                          student_data['csa_level'], student_data['csa_hours'])
-        print(student)
+        student = Student(student_data['name'], student_data['grade'], student_data['csa_hours'])
         return student
-    elif isinstance(student_data,list):
-        print(student_data)
-        student = Student(student_data[0]['student_id'], student_data[0]['name'], student_data[0]['grade'],
-                          student_data[0]['csa_level'], student_data[0]['csa_hours'])
+    elif isinstance(student_data, list):
+        student = Student(student_data[0]['name'], student_data[0]['grade'], student_data[0]['csa_hours'])
         return student
 
 
-def add_student(student):  # assumes student object
+def add_student(student):  # Adds student to table. Can accept Student object or dictionary.
     if isinstance(student, Student):
         student_dict = vars(student)
         table = return_table()
@@ -139,7 +158,7 @@ def add_student(student):  # assumes student object
         table.insert(student_dict)
 
 
-def edit_student(student, key, new_value):  # assumes student object from search
+def edit_student(student, key, new_value):  # Edits student in table. Can accept Student object or dictionary.
     if isinstance(student, Student):
         student_dict = vars(student)
         student_dict[key] = new_value
@@ -150,45 +169,55 @@ def edit_student(student, key, new_value):  # assumes student object from search
         student_dict = student
         student_dict[key] = new_value
         table = return_table()
-        table.update(student_dict, [key])
+        table.update(student_dict, ['student_id'])
 
 
-def math_csa_hours(student, hours):  # assumes student object
+def math_csa_hours(student, hours):  # Can accept anything search_table can, performs arithmetic on csa hours.
     table = return_table()
     student = search_table(student)
-    print(student)
-    student.csa_hours += hours
-    student_dict = vars(student)
-    table.update(student_dict, ['student_id'])
+    try:
+        student.csa_hours += hours
+        student_dict = vars(student)
+        table.update(student_dict, ['student_id'])
+    except AttributeError:  # Returns None if student  is not found
+        return None
 
 
-def edit_csa_hours(student, edit_value):  # assumes student object
+def edit_csa_hours(student, edit_value):  # Can accept anything search_table can. Directly edits CSA value to parameter.
     table = return_table()
     student = search_table(student)
-    print(student)
-    student.csa_hours = edit_value
-    student_dict = vars(student)
-    table.update(student_dict, ['student_id'])
+    try:
+        student.csa_hours = edit_value
+        student_dict = vars(student)
+        table.update(student_dict, ['student_id'])
+    except AttributeError:  # Returns None if ID is not found
+        return None
 
 
-def graduate_csa_levels():
+def graduate_csa_levels():  # Checks the database for anyone who has obtained a new level of the CSA..
     table = return_table()
     student_list = []
     for row in table:
         student_list.append(dict(row))
     for item in student_list:
-        if 0 <= item['csa_hours'] < 50:
-            edit_student(item, 'csa_level', 'Community')
         if 50 <= item['csa_hours'] < 200:
+            edit_student(item, 'csa_level', 'Community')
+        elif 200 <= item['csa_hours'] < 500:
             edit_student(item, 'csa_level', 'Service')
-        if 0 <= item['csa_hours'] < 500:
-            edit_student(item, 'csa_level', 'Ach')
+        elif 500 <= item['csa_hours']:
+            edit_student(item, 'csa_level', 'Achievement')
+        elif 0 <= item['csa_hours'] < 50:
+            edit_student(item, 'csa_level', 'None')
 
 
-newStudent = Student(12345678, 'JimmyJon', 10, 'Community', 10)
+newStudent = Student('JimmyJon', 10, 10)
 
-student2 = Student(12345679, 'JimmyJoe', 10, 'Service', 0)
+student2 = Student('JimmyJoe', 10, 0)
 
 
+create_ids(student2.name)
+edit_csa_hours(student2, 20)
+
+edit_csa_hours(newStudent, 49)
 graduate_csa_levels()
-# TODO: CSA HOURS IMPLEMENT
+
