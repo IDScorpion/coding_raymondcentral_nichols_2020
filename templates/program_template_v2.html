@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8" />
+		<title>student_template_v2</title>
+	</head>
+	<body id="student_template_v2" lang="en-US">
+		<div class="_idGenObjectLayout-1">
+			<div id="_idContainer000" class="_idGenObjectStyleOverride-1">
+				<img class="_idGenObjectAttribute-1" src="http://www.fbla-pbl.org/media/FBLA-Logo-Color.png" alt="" />
+			</div>
+		</div>
+		<div id="_idContainer002" class="Basic-Text-Frame">
+			<p class="Basic-Paragraph"><span class="CharOverride-2">Community Service Awards</span></p>
+			<p class="Basic-Paragraph"><span class="CharOverride-2">Program Summary</span></p>
+			<hr>
+		</div>
+		<div id="_idContainer001" class="Basic-Text-Frame">
+			<p class="Basic-Paragraph"><span class="CharOverride-1">Total Students Enrolled: {{ total_students_enrolled }}</span></p>
+			<p class="Basic-Paragraph"><span class="CharOverride-1">Total Completed Hours: {{ total_overall_hours }}</span></p>
+			<hr>
+		</div>
+		<div id="_idContainer003" class="Basic-Text-Frame">
+			<p class="Basic-Paragraph"><span class="CharOverride-1">Total Students Per Category:</span></p>
+			<ul class="CharOverride-1">
+				<li><p>No Level: {{ total_students_none }}</p></li>
+				<li>Community: {{ total_students_community }}</li>
+				<li>Service: {{ total_students_service }}</li>
+				<li>Achievement: {{ total_students_achievement }}</li>
+			</ul>
+			<hr>
+		</div>
+		<div id="_idContainer004" class="Basic-Text-Frame">
+			<p class="Basic-Paragraph"><span class="CharOverride-1">Total Hours Per Category:</span></p>
+			<ul class="CharOverride-1">
+				<li>No Level: {{ total_hours_none }}</li>
+				<li>Community: {{ total_hours_community }}</li>
+				<li>Service: {{ total_hours_service }}</li>
+				<li>Achievement: {{ total_hours_achievement }}</li>
+			</ul>
+			<hr>
+		</div>
+		<div id="_idContainer005" class="Basic-Text-Frame">
+			<p class="Basic-Paragraph"><span class="CharOverride-1">Total Hours Above Per Category:</span></p>
+			<ul class="CharOverride-1">
+				<li>No Level: {{ total_hours_above_none }}</li>
+				<li>Community: {{ total_hours_above_community }}</li>
+				<li>Service: {{ total_hours_above_service }}</li>
+				<li>Achievement: {{ total_hours_above_achievement }}</li>
+			</ul>
+			<hr>
+		</div>
+	</body>
+</html>

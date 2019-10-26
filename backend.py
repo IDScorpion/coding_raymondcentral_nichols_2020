@@ -4,9 +4,15 @@
 # TODO: Add deletion of students
 # TODO: Add report generation: CSA hours per student, Community Service Award program categories and total hours.
 
-from os import path, mkdir
+from os import path, mkdir, remove
 import dataset
 import random
+from pdf_reports import pug_to_html
+import pdfkit
+import datetime
+import jinja2
+import base64
+
 
 
 class Student:  # defines what makes a student
@@ -19,6 +25,16 @@ class Student:  # defines what makes a student
 
     def __call__(self):  # makes the function callable
         pass
+
+
+csa_levels_names = ['None', 'Community', 'Service', 'Achievement']
+
+csa_levels_hours = {
+    'None': 0,
+    'Community': 50,
+    'Service': 200,
+    'Achievement': 500
+}
 
 
 def create_ids(name):  # creates randomized 8 digit ids
@@ -48,11 +64,15 @@ def create_file(name):  # acts as simple way to create files
 
 
 def setup():  # first time setup
-    if path.exists(r"data") is False:
-        mkdir(r"data")  # makes data directory
+    if path.exists(r'data') is False:
+        mkdir(r'data')
+    if path.exists(r'reports') is False:
+        mkdir(r'reports')
     if path.exists(r"data\Students.db") is False:
         db_location = r"data\Students.db"
         create_file(db_location)  # creates file
+    global config
+    config = pdfkit.configuration(wkhtmltopdf=r'wkhtmltox\bin\wkhtmltopdf.exe')
     graduate_csa_levels()  # Used so on every run the CSA levels are updated
 
 
@@ -61,6 +81,10 @@ def return_table():  # Returns the Students table
     db = dataset.connect('sqlite:///' + db_location)
     table = db['Students']
     return table
+
+
+if path.exists(r"data") is False:
+    mkdir(r"data")  # makes data directory
 
 
 def get_query_type(query):  # Interprets query type (ID, Grade, CSA Level, Name, or Student obj.)
@@ -210,14 +234,122 @@ def graduate_csa_levels():  # Checks the database for anyone who has obtained a 
             edit_student(item, 'csa_level', 'None')
 
 
+def generate_student_report(student):  # Can take anything search can
+    graduate_csa_levels()
+    student = search_table(student)
+    try:
+        next_level = csa_levels_names[csa_levels_names.index(student.csa_level) + 1]
+    except IndexError:
+        next_level = 'Finished!'
+    rem_hours = csa_levels_hours[next_level] - student.csa_hours
+    if rem_hours <= 0:
+        rem_hours = 0
+    template_loader = jinja2.FileSystemLoader(searchpath="templates\\")
+    template_env = jinja2.Environment(loader=template_loader)
+    template_file = "student_template_v2.html"
+    template = template_env.get_template(template_file)
+    html_report = template.render(name=student.name,
+                                  grade=student.grade,
+                                  student_id=student.student_id,
+                                  csa_hours=student.csa_hours,
+                                  csa_level=student.csa_level,
+                                  rem_hours=rem_hours)
+    with open(r'reports\temp_html_report.html', 'w+') as html:
+        html.write(html_report)
+    d = datetime.datetime.now()
+    date_now = d.strftime("%d-%B-%Y")
+    css = [r'templates/css/idGeneratedStyles.css']
+    options = {
+        'quiet': ''
+    }
+    pdfkit.from_file(r'reports\temp_html_report.html',
+                     r'reports/{}_Student_Report_{}.pdf'.format(str(student.name).strip(), date_now),
+                     configuration=config,
+                     css=css, options=options)
+    remove(r'reports\temp_html_report.html')
+
+
+def generate_program_report():  # Total enrolled, total hours, students per catagory, hours per
+    graduate_csa_levels()
+    table = return_table()
+    students = []
+    for row in table:
+        students.append(dict(row))
+    total_students_enrolled = len(students)
+    total_overall_hours = 0
+    
+    total_students = {
+        'None': 0,
+        'Community': 0,
+        'Service': 0,
+        'Achievement': 0
+    }
+    total_hours = {
+        'None': 0,
+        'Community': 0,
+        'Service': 0,
+        'Achievement': 0
+    }
+    total_hours_above = {
+        'None': 0,
+        'Community': 0,
+        'Service': 0,
+        'Achievement': 0
+    }
+
+    for student in students:
+        total_overall_hours += student['csa_hours']
+        total_students[(student['csa_level'])] += 1
+        total_hours[student['csa_level']] += student['csa_hours']
+        total_hours_above[student['csa_level']] += student['csa_hours'] - csa_levels_hours[student['csa_level']]
+
+    template_loader = jinja2.FileSystemLoader(searchpath="templates\\")
+    template_env = jinja2.Environment(loader=template_loader)
+    template_file = "program_template_v2.html"
+    template = template_env.get_template(template_file)
+    html_report = template.render(total_students_enrolled=total_students_enrolled,
+                                  total_overall_hours=total_overall_hours,
+                                  
+                                  total_students_none=total_students['None'],
+                                  total_students_community=total_students['Community'],
+                                  total_students_service=total_students['Service'],
+                                  total_students_achievement=total_students['Achievement'],
+                                  
+                                  total_hours_none=total_hours['None'],
+                                  total_hours_community=total_hours['Community'],
+                                  total_hours_service=total_hours['Service'],
+                                  total_hours_achievement=total_hours['Achievement'],
+
+                                  total_hours_above_none=total_hours_above['None'],
+                                  total_hours_above_community=total_hours_above['Community'],
+                                  total_hours_above_service=total_hours_above['Service'],
+                                  total_hours_above_achievement=total_hours_above['Achievement']
+                                  )
+    with open(r'reports\temp_html_report.html', 'w+') as html:
+        html.write(html_report)
+    d = datetime.datetime.now()
+    date_now = d.strftime("%d-%B-%Y")
+    css = [r'templates/css/idGeneratedStyles.css']
+    options = {
+        'quiet': ''
+    }
+    pdfkit.from_file(r'reports\temp_html_report.html',
+                     r'reports/Program_Report_{}.pdf'.format(date_now),
+                     configuration=config,
+                     css=css, options=options)
+    remove(r'reports\temp_html_report.html')
+
+
 newStudent = Student('JimmyJon', 10, 10)
 
 student2 = Student('JimmyJoe', 10, 0)
-
-
+#add_student(newStudent)
 create_ids(student2.name)
 edit_csa_hours(student2, 20)
 
-edit_csa_hours(newStudent, 49)
+edit_csa_hours(newStudent, 499)
 graduate_csa_levels()
 
+setup()
+#generate_student_report(student2)
+generate_program_report()
