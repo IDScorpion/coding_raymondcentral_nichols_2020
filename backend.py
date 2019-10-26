@@ -2,7 +2,6 @@
 # TODO: Add backup and restore
 # TODO: comments
 # TODO: Add deletion of students
-# TODO: Add report generation: CSA hours per student, Community Service Award program categories and total hours.
 
 from os import path, mkdir, remove
 import dataset
