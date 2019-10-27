@@ -17,10 +17,7 @@ p.Basic-Paragraph {
 	font-variant:normal;
 	font-weight:normal;
 	line-height:1.2;
-	margin-bottom:0;
-	margin-left:0;
-	margin-right:0;
-	margin-top:0;
+    margin: 0;
 	orphans:1;
 	page-break-after:auto;
 	page-break-before:auto;
@@ -53,13 +50,17 @@ span.CharOverride-2 {
 	height:57px;
 	width:72px;
 }
+
+#_idContainer002 {
+    margin-top: 10px;
+}
 img._idGenObjectAttribute-1 {
-	height:100.00%;
-	min-width:100%;
-	width:100.00%;
+    height: 200.00%;
+    min-width: 200%;
+    width: 200.00%;
 }
 div._idGenObjectStyleOverride-1 {
-	border-width:0px;
+    border-width: 0;
 }
 div._idGenObjectLayout-1 {
 	text-align:left;

@@ -1,17 +1,14 @@
 # TODO: write code
-# TODO: Add backup and restore
 # TODO: comments
-# TODO: Add deletion of students
+# TODO: ??
+import datetime  # Used in various file names
+import os  # Used in creation and deletion of files and directories
+import random  # Used in the creation of random ids
+import shutil  # Used in backup and restore
 
-from os import path, mkdir, remove
-import dataset
-import random
-from pdf_reports import pug_to_html
-import pdfkit
-import datetime
-import jinja2
-import base64
-
+import dataset  # Provides database
+import jinja2  # Used to interpret HTML template and fill data
+import pdfkit  # Creates PDF reports from HTML output by jinja2
 
 
 class Student:  # defines what makes a student
@@ -62,17 +59,34 @@ def create_file(name):  # acts as simple way to create files
         print('File', name, 'created.')
 
 
+def get_date():  # Date is used commonly throughout the program
+    d = datetime.datetime.now()
+    date_now = d.strftime("%d-%B-%Y")
+    return date_now
+
+
+def backup():  # Copies current database in data to the backups folder
+    shutil.copyfile(r'data\Students.db', r'backups\Students({}).db'.format(get_date()))
+
+
+def restore(restore_file_date):  # Accepts date as string in format DD-MonthLong-YYYY, ex. 26-October-2019
+    shutil.copyfile(r'backups\Students({}).db'.format(restore_file_date), r'data\Students.db')
+
+
 def setup():  # first time setup
-    if path.exists(r'data') is False:
-        mkdir(r'data')
-    if path.exists(r'reports') is False:
-        mkdir(r'reports')
-    if path.exists(r"data\Students.db") is False:
+    if os.path.exists(r'data') is False:
+        os.mkdir(r'data')
+    if os.path.exists(r'reports') is False:
+        os.mkdir(r'reports')
+    if os.path.exists(r'backups') is False:
+        os.mkdir(r'backups')
+    if os.path.exists(r"data\Students.db") is False:
         db_location = r"data\Students.db"
         create_file(db_location)  # creates file
     global config
-    config = pdfkit.configuration(wkhtmltopdf=r'wkhtmltox\bin\wkhtmltopdf.exe')
+    config = pdfkit.configuration(wkhtmltopdf=r'wkhtmltox\bin\wkhtmltopdf.exe')  # WKHTMLtoPDF is a dependency of PDFkit
     graduate_csa_levels()  # Used so on every run the CSA levels are updated
+    backup()
 
 
 def return_table():  # Returns the Students table
@@ -80,10 +94,6 @@ def return_table():  # Returns the Students table
     db = dataset.connect('sqlite:///' + db_location)
     table = db['Students']
     return table
-
-
-if path.exists(r"data") is False:
-    mkdir(r"data")  # makes data directory
 
 
 def get_query_type(query):  # Interprets query type (ID, Grade, CSA Level, Name, or Student obj.)
@@ -195,6 +205,13 @@ def edit_student(student, key, new_value):  # Edits student in table. Can accept
         table.update(student_dict, ['student_id'])
 
 
+def delete_student(student):  # Takes anything search can
+    search = search_table(student)
+    table = return_table()
+    print(search.student_id)
+    table.delete(student_id=search.student_id)
+
+
 def math_csa_hours(student, hours):  # Can accept anything search_table can, performs arithmetic on csa hours.
     table = return_table()
     student = search_table(student)
@@ -255,20 +272,19 @@ def generate_student_report(student):  # Can take anything search can
                                   rem_hours=rem_hours)
     with open(r'reports\temp_html_report.html', 'w+') as html:
         html.write(html_report)
-    d = datetime.datetime.now()
-    date_now = d.strftime("%d-%B-%Y")
+    date_now = get_date()
     css = [r'templates/css/idGeneratedStyles.css']
     options = {
         'quiet': ''
     }
-    pdfkit.from_file(r'reports\temp_html_report.html',
+    pdfkit.from_file(r"reports\temp_html_report.html",
                      r'reports/{}_Student_Report_{}.pdf'.format(str(student.name).strip(), date_now),
                      configuration=config,
                      css=css, options=options)
-    remove(r'reports\temp_html_report.html')
+    os.remove(r'reports\temp_html_report.html')
 
 
-def generate_program_report():  # Total enrolled, total hours, students per catagory, hours per
+def generate_program_report():  # Total enrolled, total hours, students per category, hours per
     graduate_csa_levels()
     table = return_table()
     students = []
@@ -276,7 +292,7 @@ def generate_program_report():  # Total enrolled, total hours, students per cata
         students.append(dict(row))
     total_students_enrolled = len(students)
     total_overall_hours = 0
-    
+
     total_students = {
         'None': 0,
         'Community': 0,
@@ -308,12 +324,12 @@ def generate_program_report():  # Total enrolled, total hours, students per cata
     template = template_env.get_template(template_file)
     html_report = template.render(total_students_enrolled=total_students_enrolled,
                                   total_overall_hours=total_overall_hours,
-                                  
+
                                   total_students_none=total_students['None'],
                                   total_students_community=total_students['Community'],
                                   total_students_service=total_students['Service'],
                                   total_students_achievement=total_students['Achievement'],
-                                  
+
                                   total_hours_none=total_hours['None'],
                                   total_hours_community=total_hours['Community'],
                                   total_hours_service=total_hours['Service'],
@@ -326,8 +342,7 @@ def generate_program_report():  # Total enrolled, total hours, students per cata
                                   )
     with open(r'reports\temp_html_report.html', 'w+') as html:
         html.write(html_report)
-    d = datetime.datetime.now()
-    date_now = d.strftime("%d-%B-%Y")
+    date_now = get_date()
     css = [r'templates/css/idGeneratedStyles.css']
     options = {
         'quiet': ''
@@ -336,19 +351,12 @@ def generate_program_report():  # Total enrolled, total hours, students per cata
                      r'reports/Program_Report_{}.pdf'.format(date_now),
                      configuration=config,
                      css=css, options=options)
-    remove(r'reports\temp_html_report.html')
+    os.remove(r'reports\temp_html_report.html')
 
 
 newStudent = Student('JimmyJon', 10, 10)
 
 student2 = Student('JimmyJoe', 10, 0)
-#add_student(newStudent)
-create_ids(student2.name)
-edit_csa_hours(student2, 20)
 
-edit_csa_hours(newStudent, 499)
-graduate_csa_levels()
-
-setup()
-#generate_student_report(student2)
-generate_program_report()
+# noinspection PyTypeChecker
+delete_student(student2)
