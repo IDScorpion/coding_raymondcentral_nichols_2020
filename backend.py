@@ -1,6 +1,7 @@
 # TODO: write code
 # TODO: comments
 # TODO: ??
+# TODO: possibly split into files
 import datetime  # Used in various file names
 import os  # Used in creation and deletion of files and directories
 import random  # Used in the creation of random ids
