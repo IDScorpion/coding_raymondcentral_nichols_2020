@@ -354,10 +354,4 @@ def generate_program_report():  # Total enrolled, total hours, students per cate
                      css=css, options=options)
     os.remove(r'reports\temp_html_report.html')
 
-
-newStudent = Student('JimmyJon', 10, 10)
-
-student2 = Student('JimmyJoe', 10, 0)
-
-# noinspection PyTypeChecker
-delete_student(student2)
+#  TODO: Check PDF creation on other machines
