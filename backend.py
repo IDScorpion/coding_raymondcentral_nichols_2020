@@ -84,10 +84,11 @@ def setup():  # first time setup
     if os.path.exists(r"data\Students.db") is False:
         db_location = r"data\Students.db"
         create_file(db_location)  # creates file
-    global config
-    config = pdfkit.configuration(wkhtmltopdf=r'wkhtmltox\bin\wkhtmltopdf.exe')  # WKHTMLtoPDF is a dependency of PDFkit
     graduate_csa_levels()  # Used so on every run the CSA levels are updated
     backup()
+
+
+config = pdfkit.configuration(wkhtmltopdf=r'wkhtmltox\bin\wkhtmltopdf.exe')  # WKHTMLtoPDF is a dependency of PDFkit
 
 
 def return_table():  # Returns the Students table
@@ -354,4 +355,17 @@ def generate_program_report():  # Total enrolled, total hours, students per cate
                      css=css, options=options)
     os.remove(r'reports\temp_html_report.html')
 
-#  TODO: Check PDF creation on other machines
+
+def return_student_list(sort_parameter=None, criteria=None):
+    table = return_table()
+    students = []
+    for row in table:
+        if sort_parameter is None or criteria is None:
+            students.append(dict(row))
+        else:
+            if dict(row)[sort_parameter] == criteria:
+                students.append(dict(row))
+    if students:
+        return students
+    else:
+        return None

@@ -32,11 +32,31 @@ class Window(Frame):
         self.master.title("FBLA Community Service Awards Tracking")
         self.pack(fill=BOTH, expand=1)
 
-        menu = Menu(self.master)
-        self.master.config(menu=menu)
+        self.menubar = Menu(self.master)
 
-        export_menu = Menu(menu)
-        export_menu.add_command(label="Export", command=backend.generate_program_report)
+        self.report_menu = Menu(self.menubar)
+        self.report_menu.add_command(label="Export Program Report", command=backend.generate_program_report)
+
+        self.menubar.add_cascade(label="Reports", menu=self.report_menu)
+        self.master.config(menu=self.menubar)
+
+        self.listbox = Listbox(self.master)
+        self.listbox.pack()
+        self.listbox.insert(END, "a list entry")
+        self.refresh_students_listbox()
+
+    def refresh_students_listbox(self, sort_parameter=None,criteria=None):
+        students = backend.return_student_list(sort_parameter, criteria)
+        if students is None:
+            student_names = ["No data found."]
+        else:
+            student_names = []
+            for student in students:
+                student_names.append(student["name"])
+        self.listbox.delete(0, END)
+        for name in student_names:
+            self.listbox.insert(END, name)
+# TODO: Add filter, keep working on listbox function, then add info area on right side
 root.state("zoomed")
 
 app = Window(root)
