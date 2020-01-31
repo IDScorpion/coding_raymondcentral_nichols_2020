@@ -34,13 +34,32 @@ class Window(Frame):
         self.current_student = None
         if self.current_student is None:
             self.current_student = backend.Student("None Selected",12)
+            self.current_student.student_id = None
+            self.current_student.grade = None
 
-
-        self.student_label_text = StringVar()
-        self.student_label_text.set(f"Student Name: {self.current_student.name}")
-
-        self.student_label = Label(self.right_frame, textvariable=self.student_label_text)
+        self.init_info()
         self.init_window()
+    def init_info(self):
+        self.student_name_label_text = StringVar()
+        self.student_name_label_text.set(f"Student Name: {self.current_student.name}")
+        self.student_name_label = Label(self.right_frame, textvariable=self.student_name_label_text)
+
+        self.student_id_label_text = StringVar()
+        self.student_id_label_text.set(f"Student ID: {self.current_student.student_id}")
+        self.student_id_label = Label(self.right_frame, textvariable=self.student_id_label_text)
+
+        self.student_grade_label_text = StringVar()
+        self.student_grade_label_text.set(f"Student Grade: {self.current_student.grade}")
+        self.student_grade_label = Label(self.right_frame, textvariable=self.student_grade_label_text)
+
+        self.student_csa_level_label_text = StringVar()
+        self.student_csa_level_label_text.set(f"Student CSA Level: {self.current_student.csa_level}")
+        self.student_csa_level_label = Label(self.right_frame, textvariable=self.student_csa_level_label_text)
+
+        self.student_csa_hours_label_text = StringVar()
+        self.student_csa_hours_label_text.set(f"Student CSA Hours: {self.current_student.csa_hours}")
+        self.student_csa_hours_label = Label(self.right_frame, textvariable=self.student_csa_hours_label_text)
+
 
     def init_window(self):
         self.master.title("FBLA Community Service Awards Tracking")
@@ -50,8 +69,10 @@ class Window(Frame):
 
         self.report_menu = Menu(self.menubar)
         self.report_menu.add_command(label="Export Program Report", command=backend.generate_program_report)
-
         self.menubar.add_cascade(label="Reports", menu=self.report_menu)
+
+        self.menubar.add_command(label="Graduate Levels", command=backend.graduate_csa_levels)
+
         self.master.config(menu=self.menubar)
 
         self.listbox = Listbox(self.left_frame,height = 50, width=100,selectmode=SINGLE)
@@ -62,8 +83,20 @@ class Window(Frame):
         self.load_button = Button(self.left_frame,text="Load", command=self.load_student)
         self.load_button.grid(column=1,row=0)
 
-        self.student_label = Label(self.right_frame, textvariable=self.student_label_text)
-        self.student_label.pack()
+        self.student_name_label = Label(self.right_frame, textvariable=self.student_name_label_text)
+        self.student_name_label.grid(column=0,row=0)
+
+        self.student_id_label = Label(self.right_frame, textvariable=self.student_id_label_text)
+        self.student_id_label.grid(column=0,row=1)
+
+        self.student_grade_label = Label(self.right_frame, textvariable=self.student_grade_label_text)
+        self.student_grade_label.grid(column=0,row=2)
+
+        self.student_csa_level_label = Label(self.right_frame, textvariable=self.student_csa_level_label_text)
+        self.student_csa_level_label.grid(column=0,row=3)
+
+        self.student_csa_hours_label = Label(self.right_frame, textvariable=self.student_csa_hours_label_text)
+        self.student_csa_hours_label.grid(column=0,row=4)
 
     def refresh_students_listbox(self, sort_parameter=None,criteria=None):
         students = backend.return_student_list(sort_parameter, criteria)
@@ -83,13 +116,18 @@ class Window(Frame):
         if temp_student:
             print(temp_student)
             self.current_student = backend.search_table(temp_student)
-            self.student_label_text.set(f"Student Name: {self.current_student.name}")
+            self.student_name_label_text.set(f"Student Name: {self.current_student.name}")
+            self.student_id_label_text.set(f"Student ID: {self.current_student.student_id}")
+            self.student_grade_label_text.set(f"Student Grade: {self.current_student.grade}")
+            self.student_csa_level_label_text.set(f"Student CSA Level: {self.current_student.csa_level}")
+            self.student_csa_hours_label_text.set(f"Student CSA Hours: {self.current_student.csa_hours}")
         else:
             print("Nope")
-            self.student_label_text.set(f"Student Name: None Selected")
+            self.student_name_label_text.set(f"Student Name: None Selected")
 
 
 # TODO: Add filter, keep working on listbox function, then add info area on right side
+# TODO: Check bug with CSA levels not updating
 root.state("zoomed")
 
 app = Window(root)
