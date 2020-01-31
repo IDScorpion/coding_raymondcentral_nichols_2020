@@ -45,6 +45,9 @@ class Window(Frame):
         self.listbox.insert(END, "a list entry")
         self.refresh_students_listbox()
 
+        self.load_button = Button(self.master,text="Load", command=self.load_student)
+        self.load_button.pack()
+
     def refresh_students_listbox(self, sort_parameter=None,criteria=None):
         students = backend.return_student_list(sort_parameter, criteria)
         if students is None:
@@ -56,6 +59,9 @@ class Window(Frame):
         self.listbox.delete(0, END)
         for name in student_names:
             self.listbox.insert(END, name)
+    def load_student(self):
+        print(self.listbox.get(0))
+
 # TODO: Add filter, keep working on listbox function, then add info area on right side
 root.state("zoomed")
 
