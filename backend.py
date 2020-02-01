@@ -13,11 +13,17 @@ import pdfkit  # Creates PDF reports from HTML output by jinja2
 
 
 class Student:  # defines what makes a student
-    def __init__(self, name, grade, csa_hours=0):
-        self.student_id = create_ids(name)
+    def __init__(self, name, grade ,student_id=None, csa_level=None,csa_hours=0):
+        if student_id is None:
+            self.student_id = create_ids(name)
+        else:
+            self.student_id = student_id
         self.name = name
         self.grade = grade
-        self.csa_level = 'None'
+        if csa_level is None:
+            self.csa_level = 'None'
+        else:
+            self.csa_level = csa_level
         self.csa_hours = csa_hours
 
     def __call__(self):  # makes the function callable
@@ -174,10 +180,19 @@ def search_table(query):  # Searches table and creates a Student object with res
 
 def build_student(student_data):  # builds a student from data list or dict
     if isinstance(student_data, dict):
-        student = Student(student_data['name'], student_data['grade'], student_data['csa_hours'])
+        student = Student(student_data['name'],
+                          student_data["student_id"],
+                          student_data['grade'],
+                          student_data["csa_level"],
+                          student_data['csa_hours']
+                          )
         return student
     elif isinstance(student_data, list):
-        student = Student(student_data[0]['name'], student_data[0]['grade'], student_data[0]['csa_hours'])
+        student = Student(student_data[0]['name'],
+                          student_data[0]["student_id"],
+                          student_data[0]['grade'],
+                          student_data[0]["csa_level"],
+                          student_data[0]['csa_hours'])
         return student
 
 

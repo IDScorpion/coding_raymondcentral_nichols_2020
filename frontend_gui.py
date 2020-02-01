@@ -15,16 +15,19 @@ root = Tk()
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 screen_info = {
-    "width" : screen_width,
+    "width": screen_width,
     "height": screen_height,
     "dimensions": f"{screen_width}x{screen_height}"
 }
 
-#root.geometry(screen_info["dimensions"])
+
+# root.geometry(screen_info["dimensions"])
 # pythonprogramming.net/tkinter-menu-bar-tutorial/
+
+
 class Window(Frame):
-    def __init__(self,master=None):
-        Frame.__init__(self,master)
+    def __init__(self, master=None):
+        Frame.__init__(self, master)
         self.master = master
         self.left_frame = Frame(self.master)
         self.left_frame.pack(side=LEFT)
@@ -33,12 +36,13 @@ class Window(Frame):
 
         self.current_student = None
         if self.current_student is None:
-            self.current_student = backend.Student("None Selected",12)
+            self.current_student = backend.Student("None Selected", 12)
             self.current_student.student_id = None
             self.current_student.grade = None
 
         self.init_info()
         self.init_window()
+
     def init_info(self):
         self.student_name_label_text = StringVar()
         self.student_name_label_text.set(f"Student Name: {self.current_student.name}")
@@ -60,7 +64,6 @@ class Window(Frame):
         self.student_csa_hours_label_text.set(f"Student CSA Hours: {self.current_student.csa_hours}")
         self.student_csa_hours_label = Label(self.right_frame, textvariable=self.student_csa_hours_label_text)
 
-
     def init_window(self):
         self.master.title("FBLA Community Service Awards Tracking")
         self.pack(fill=BOTH, expand=1)
@@ -71,34 +74,34 @@ class Window(Frame):
         self.report_menu.add_command(label="Export Program Report", command=backend.generate_program_report)
         self.menubar.add_cascade(label="Reports", menu=self.report_menu)
 
-        self.menubar.add_command(label="Graduate Levels", command=backend.graduate_csa_levels)
+        self.menubar.add_command(label="Graduate Levels", command=backend.graduate_csa_levels) # TODO: Add wrapper to run load_students to refresh data
 
         self.master.config(menu=self.menubar)
 
-        self.listbox = Listbox(self.left_frame,height = 50, width=100,selectmode=SINGLE)
-        self.listbox.grid(column=0,row=0)
+        self.listbox = Listbox(self.left_frame, height=50, width=100, selectmode=SINGLE)
+        self.listbox.grid(column=0, row=0)
         self.listbox.insert(END, "a list entry")
         self.refresh_students_listbox()
 
-        self.load_button = Button(self.left_frame,text="Load", command=self.load_student)
-        self.load_button.grid(column=1,row=0)
+        self.load_button = Button(self.left_frame, text="Load", command=self.load_student)
+        self.load_button.grid(column=1, row=0)
 
         self.student_name_label = Label(self.right_frame, textvariable=self.student_name_label_text)
-        self.student_name_label.grid(column=0,row=0)
+        self.student_name_label.grid(column=0, row=0)
 
         self.student_id_label = Label(self.right_frame, textvariable=self.student_id_label_text)
-        self.student_id_label.grid(column=0,row=1)
+        self.student_id_label.grid(column=0, row=1)
 
         self.student_grade_label = Label(self.right_frame, textvariable=self.student_grade_label_text)
-        self.student_grade_label.grid(column=0,row=2)
+        self.student_grade_label.grid(column=0, row=2)
 
         self.student_csa_level_label = Label(self.right_frame, textvariable=self.student_csa_level_label_text)
-        self.student_csa_level_label.grid(column=0,row=3)
+        self.student_csa_level_label.grid(column=0, row=3)
 
         self.student_csa_hours_label = Label(self.right_frame, textvariable=self.student_csa_hours_label_text)
-        self.student_csa_hours_label.grid(column=0,row=4)
+        self.student_csa_hours_label.grid(column=0, row=4)
 
-    def refresh_students_listbox(self, sort_parameter=None,criteria=None):
+    def refresh_students_listbox(self, sort_parameter=None, criteria=None):
         students = backend.return_student_list(sort_parameter, criteria)
         if students is None:
             student_names = ["No data found."]
@@ -116,6 +119,7 @@ class Window(Frame):
         if temp_student:
             print(temp_student)
             self.current_student = backend.search_table(temp_student)
+            print(self.current_student.csa_level)
             self.student_name_label_text.set(f"Student Name: {self.current_student.name}")
             self.student_id_label_text.set(f"Student ID: {self.current_student.student_id}")
             self.student_grade_label_text.set(f"Student Grade: {self.current_student.grade}")
@@ -132,4 +136,3 @@ root.state("zoomed")
 
 app = Window(root)
 root.mainloop()
-
