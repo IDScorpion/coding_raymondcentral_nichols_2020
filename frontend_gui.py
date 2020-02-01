@@ -50,19 +50,24 @@ class Window(Frame):
 
         self.student_id_label_text = StringVar()
         self.student_id_label_text.set(f"Student ID: {self.current_student.student_id}")
-        self.student_id_label = Label(self.right_frame, textvariable=self.student_id_label_text)
+        self.student_id_label = Label(self.right_frame,
+                                      textvariable=self.student_id_label_text)
 
         self.student_grade_label_text = StringVar()
         self.student_grade_label_text.set(f"Student Grade: {self.current_student.grade}")
-        self.student_grade_label = Label(self.right_frame, textvariable=self.student_grade_label_text)
+        self.student_grade_label = Label(self.right_frame,
+                                         textvariable=self.student_grade_label_text)
 
         self.student_csa_level_label_text = StringVar()
         self.student_csa_level_label_text.set(f"Student CSA Level: {self.current_student.csa_level}")
-        self.student_csa_level_label = Label(self.right_frame, textvariable=self.student_csa_level_label_text)
+        self.student_csa_level_label = Label(self.right_frame,
+                                             textvariable=self.student_csa_level_label_text)
 
         self.student_csa_hours_label_text = StringVar()
         self.student_csa_hours_label_text.set(f"Student CSA Hours: {self.current_student.csa_hours}")
-        self.student_csa_hours_label = Label(self.right_frame, textvariable=self.student_csa_hours_label_text)
+        self.student_csa_hours_label = Label(self.right_frame,
+                                             textvariable=self.student_csa_hours_label_text)
+        # TODO: Add fonts
 
     def init_window(self):
         self.master.title("FBLA Community Service Awards Tracking")
@@ -74,8 +79,7 @@ class Window(Frame):
         self.report_menu.add_command(label="Export Program Report", command=backend.generate_program_report)
         self.menubar.add_cascade(label="Reports", menu=self.report_menu)
 
-        self.menubar.add_command(label="Graduate Levels", command=backend.graduate_csa_levels) # TODO: Add wrapper to run load_students to refresh data
-
+        self.menubar.add_command(label="Graduate Levels", command=self.graduate_levels_reload)
         self.master.config(menu=self.menubar)
 
         self.listbox = Listbox(self.left_frame, height=50, width=100, selectmode=SINGLE)
@@ -129,9 +133,12 @@ class Window(Frame):
             print("Nope")
             self.student_name_label_text.set(f"Student Name: None Selected")
 
+    def graduate_levels_reload(self):
+        backend.graduate_csa_levels()
+        self.load_student()
 
 # TODO: Add filter, keep working on listbox function, then add info area on right side
-# TODO: Check bug with CSA levels not updating
+
 root.state("zoomed")
 
 app = Window(root)
