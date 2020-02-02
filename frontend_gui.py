@@ -3,6 +3,8 @@ from tkinter import *
 from tkinter import messagebox
 
 import backend
+# TODO: Fix ability to make multiple boxes
+
 
 """
 Will provide the GUI for the program.
@@ -51,6 +53,8 @@ class Window(Frame):
         
         self.init_info()
         self.init_window()
+
+        self.add_hours_text = DoubleVar()
 
     def init_info(self):
         self.student_name_label_text = StringVar()
@@ -125,6 +129,10 @@ class Window(Frame):
         self.student_csa_hours_label = Label(self.right_frame, textvariable=self.student_csa_hours_label_text)
         self.student_csa_hours_label.grid(column=0, row=4)
 
+        self.add_hours_button = Button(self.right_frame, text="Add Hours", command=self.add_hours_dialog)
+        self.add_hours_button.grid(column=0, row=5)
+        self.add_hours_button["state"] = DISABLED
+
     def refresh_students_listbox(self, sort_parameter=None, criteria=None):
         try:
             prev_sel = self.listbox.curselection()
@@ -160,6 +168,7 @@ class Window(Frame):
                 self.student_grade_label_text.set(f"Student Grade: {self.current_student.grade}")
                 self.student_csa_level_label_text.set(f"Student CSA Level: {self.current_student.csa_level}")
                 self.student_csa_hours_label_text.set(f"Student CSA Hours: {self.current_student.csa_hours}")
+                self.add_hours_button["state"] = NORMAL
             else:
                 print("Nope")
                 self.student_name_label_text.set(f"Student Name: None Selected")
@@ -248,7 +257,15 @@ class Window(Frame):
         self.reload_ui()
 
     def delete_student_dialog(self):
-        pass
+        current_student = self.listbox.get(self.listbox.curselection())
+
+        self.current_student = backend.search_table(current_student)
+
+        delete_student_window = messagebox.askyesno(title="Delete", message="Are you sure you want to delete?")
+        print(delete_student_window)
+        if delete_student_window is True:
+            backend.delete_student(self.current_student)
+            self.reload_ui()
 
     def student_report_wrapper(self):
         current_student = self.listbox.get(self.listbox.curselection())
@@ -260,11 +277,34 @@ class Window(Frame):
         messagebox.showinfo(title="Report Generated", message="Your report has been generated.")
 
     def program_report_wrapper(self):
-        current_student = self.listbox.get(self.listbox.curselection())
-
         backend.generate_program_report()
 
         messagebox.showinfo(title="Report Generated", message="Your report has been generated.")
+
+    def add_hours_dialog(self):
+        current_student = self.listbox.get(self.listbox.curselection())
+
+        self.current_student = backend.search_table(current_student)
+
+        self.add_hours_window = Toplevel()
+        add_hours_label = Label(self.add_hours_window,text="Hours to Add:")
+        add_hours_label.grid(column=0,row=0)
+
+        add_hours_entry = Entry(self.add_hours_window,textvariable=self.add_hours_text)
+        add_hours_entry.grid(column=1,row=0)
+
+        add_hours_button = Button(self.add_hours_window, text="Add", command=self.add_hours_wrapper)
+        add_hours_button.grid(column=0,row=1)
+    def add_hours_wrapper(self):
+        # current_student = self.listbox.get(self.listbox.curselection())
+
+        # self.current_student = backend.search_table(current_student) # TODO: look into making this a function
+
+        backend.math_csa_hours(self.current_student, self.add_hours_text.get())
+        self.add_hours_window.destroy()
+        self.reload_ui()
+
+
 
 
 # TODO: Add filter, keep working on listbox function, then add info area on right side
