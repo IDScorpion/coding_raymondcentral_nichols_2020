@@ -43,6 +43,10 @@ class Window(Frame):
         self.add_name_text = StringVar()
         self.add_grade_int = IntVar()
         self.add_csa_hours_flt = DoubleVar()
+
+        self.edit_name_text = StringVar()
+        self.edit_grade_int = IntVar()
+        self.edit_csa_hours_flt = DoubleVar()
         
         self.init_info()
         self.init_window()
@@ -88,15 +92,18 @@ class Window(Frame):
 
         # self.listbox = Listbox(self.left_frame, height=50, width=100, selectmode=SINGLE)\
         self.listbox = Listbox(self.left_frame,selectmode=SINGLE)
-        self.listbox.grid(column=0, row=0, columnspan=2)
+        self.listbox.grid(column=0, row=0, columnspan=3)
         self.listbox.insert(END, "a list entry")
         self.refresh_students_listbox()
 
         self.add_button = Button(self.left_frame, text="Add", command=self.add_student_dialog)
         self.add_button.grid(column=0, row=1)
 
+        self.edit_button = Button(self.left_frame, text="Edit", command=self.edit_student_dialog)
+        self.edit_button.grid(column=1, row=1)
+
         self.load_button = Button(self.left_frame, text="Load", command=self.load_student)
-        self.load_button.grid(column=1, row=1)
+        self.load_button.grid(column=2, row=1)
 
 
         self.student_name_label = Label(self.right_frame, textvariable=self.student_name_label_text)
@@ -193,6 +200,46 @@ class Window(Frame):
                                   csa_hours=self.add_csa_hours_flt.get())
         backend.add_student(student)
         self.add_window.destroy()
+        self.reload_ui()
+
+    def edit_student_dialog(self):
+        current_student = self.listbox.get(self.listbox.curselection())
+
+        self.current_student = backend.search_table(current_student)
+
+
+
+        #print(current_student.student_id)
+        self.edit_window = Toplevel()
+
+        name_label = Label(self.edit_window, text="Name")
+        name_label.grid(column=0, row=0)
+        name_input = Entry(self.edit_window, textvariable=self.edit_name_text)
+        self.edit_name_text.set(self.current_student.name)
+        name_input.grid(column=1, row=0)
+
+        grade_label = Label(self.edit_window, text="Grade")
+        grade_label.grid(column=0, row=1)
+        grades = {9, 10, 11, 12}
+        grade_input = OptionMenu(self.edit_window, self.edit_grade_int, *grades)
+        self.edit_grade_int.set(self.current_student.grade)
+        grade_input.grid(column=1, row=1)
+
+        csa_hours_label = Label(self.edit_window, text="CSA Hours")
+        csa_hours_label.grid(column=0, row=2)
+        self.edit_csa_hours_flt.set(self.current_student.csa_hours)
+        csa_hours_input = Entry(self.edit_window, textvariable=self.edit_csa_hours_flt)
+        csa_hours_input.grid(column=1, row=2)
+
+        edit_button = Button(self.edit_window, text="Edit Student", command=self.edit_student_wrapper)
+        edit_button.grid(column=0, row=5)
+
+    def edit_student_wrapper(self):
+        student = backend.Student(name=self.edit_name_text.get(),
+                                  grade=self.edit_grade_int.get(),
+                                  csa_hours=self.edit_csa_hours_flt.get())
+        backend.edit_student(self.current_student,data_write=student)
+        self.edit_window.destroy()
         self.refresh_students_listbox()
         self.reload_ui()
 

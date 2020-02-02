@@ -181,16 +181,16 @@ def search_table(query):  # Searches table and creates a Student object with res
 def build_student(student_data):  # builds a student from data list or dict
     if isinstance(student_data, dict):
         student = Student(student_data['name'],
-                          student_data["student_id"],
                           student_data['grade'],
+                          student_data["student_id"],
                           student_data["csa_level"],
                           student_data['csa_hours']
                           )
         return student
     elif isinstance(student_data, list):
         student = Student(student_data[0]['name'],
-                          student_data[0]["student_id"],
                           student_data[0]['grade'],
+                          student_data[0]["student_id"],
                           student_data[0]["csa_level"],
                           student_data[0]['csa_hours'])
         return student
@@ -208,18 +208,24 @@ def add_student(student):  # Adds student to table. Can accept Student object or
         table.insert(student_dict)
 
 
-def edit_student(student, key, new_value):  # Edits student in table. Can accept Student object or dictionary.
-    if isinstance(student, Student):
-        student_dict = vars(student)
-        student_dict[key] = new_value
-        table = return_table()
-        table.update(student_dict, ['student_id'])
+def edit_student(student, data_write=None, key=None, new_value=None):  # TODO: EDit this: Edits student in table. Can accept Student object or dictionary.
+    if data_write is None:
+        if isinstance(student, Student):
+            student_dict = vars(student)
+            student_dict[key] = new_value
+            table = return_table()
+            table.update(student_dict, ['student_id'])
 
-    elif isinstance(student, dict):
-        student_dict = student
-        student_dict[key] = new_value
+        elif isinstance(student, dict):
+            student_dict = student
+            student_dict[key] = new_value
+            table = return_table()
+            table.update(student_dict, ['student_id'])
+    else:
+        if isinstance(data_write, Student):
+            student = vars(data_write)
         table = return_table()
-        table.update(student_dict, ['student_id'])
+        table.update(student, ['student_id'])
 
 
 def delete_student(student):  # Takes anything search can
@@ -258,13 +264,13 @@ def graduate_csa_levels():  # Checks the database for anyone who has obtained a 
         student_list.append(dict(row))
     for item in student_list:
         if 50 <= item['csa_hours'] < 200:
-            edit_student(item, 'csa_level', 'Community')
+            edit_student(item,key='csa_level',new_value='Community')
         elif 200 <= item['csa_hours'] < 500:
-            edit_student(item, 'csa_level', 'Service')
+            edit_student(item, key='csa_level', new_value='Service')
         elif 500 <= item['csa_hours']:
-            edit_student(item, 'csa_level', 'Achievement')
+            edit_student(item, key='csa_level', new_value='Achievement')
         elif 0 <= item['csa_hours'] < 50:
-            edit_student(item, 'csa_level', 'None')
+            edit_student(item, key='csa_level', new_value='None')
 
 
 def generate_student_report(student):  # Can take anything search can
