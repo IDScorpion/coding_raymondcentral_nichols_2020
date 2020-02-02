@@ -1,5 +1,6 @@
 import os
 from tkinter import *
+from tkinter import messagebox
 
 import backend
 
@@ -84,7 +85,8 @@ class Window(Frame):
         self.menubar = Menu(self.master)
 
         self.report_menu = Menu(self.menubar)
-        self.report_menu.add_command(label="Export Program Report", command=backend.generate_program_report)
+        self.report_menu.add_command(label="Export Program Report", command=self.program_report_wrapper)
+        self.report_menu.add_command(label="Export Student Report", command=self.student_report_wrapper)
         self.menubar.add_cascade(label="Reports", menu=self.report_menu)
 
         self.menubar.add_command(label="Refresh", command=self.reload_ui)
@@ -92,7 +94,7 @@ class Window(Frame):
 
         # self.listbox = Listbox(self.left_frame, height=50, width=100, selectmode=SINGLE)\
         self.listbox = Listbox(self.left_frame,selectmode=SINGLE)
-        self.listbox.grid(column=0, row=0, columnspan=3)
+        self.listbox.grid(column=0, row=0, columnspan=4)
         self.listbox.insert(END, "a list entry")
         self.refresh_students_listbox()
 
@@ -104,7 +106,9 @@ class Window(Frame):
 
         self.load_button = Button(self.left_frame, text="Load", command=self.load_student)
         self.load_button.grid(column=2, row=1)
-
+        
+        self.delete_button = Button(self.left_frame, text="Delete", command=self.delete_student_dialog)
+        self.delete_button.grid(column=3, row=1)
 
         self.student_name_label = Label(self.right_frame, textvariable=self.student_name_label_text)
         self.student_name_label.grid(column=0, row=0)
@@ -242,6 +246,26 @@ class Window(Frame):
         self.edit_window.destroy()
         self.refresh_students_listbox()
         self.reload_ui()
+
+    def delete_student_dialog(self):
+        pass
+
+    def student_report_wrapper(self):
+        current_student = self.listbox.get(self.listbox.curselection())
+
+        self.current_student = backend.search_table(current_student)
+
+        backend.generate_student_report(self.current_student)
+
+        messagebox.showinfo(title="Report Generated", message="Your report has been generated.")
+
+    def program_report_wrapper(self):
+        current_student = self.listbox.get(self.listbox.curselection())
+
+        backend.generate_program_report()
+
+        messagebox.showinfo(title="Report Generated", message="Your report has been generated.")
+
 
 # TODO: Add filter, keep working on listbox function, then add info area on right side
 
