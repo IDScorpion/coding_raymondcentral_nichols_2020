@@ -13,7 +13,7 @@ import pdfkit  # Creates PDF reports from HTML output by jinja2
 
 
 class Student:  # defines what makes a student
-    def __init__(self, name, grade ,student_id=None, csa_level=None,csa_hours=0):
+    def __init__(self, name, grade, student_id=None, csa_level=None, csa_hours=0):
         if student_id is None:
             self.student_id = create_ids(name)
         else:
@@ -208,7 +208,8 @@ def add_student(student):  # Adds student to table. Can accept Student object or
         table.insert(student_dict)
 
 
-def edit_student(student, data_write=None, key=None, new_value=None):  # TODO: EDit this: Edits student in table. Can accept Student object or dictionary.
+def edit_student(student, data_write=None, key=None,
+                 new_value=None):  # TODO: EDit this: Edits student in table. Can accept Student object or dictionary.
     if data_write is None:
         if isinstance(student, Student):
             student_dict = vars(student)
@@ -264,7 +265,7 @@ def graduate_csa_levels():  # Checks the database for anyone who has obtained a 
         student_list.append(dict(row))
     for item in student_list:
         if 50 <= item['csa_hours'] < 200:
-            edit_student(item,key='csa_level',new_value='Community')
+            edit_student(item, key='csa_level', new_value='Community')
         elif 200 <= item['csa_hours'] < 500:
             edit_student(item, key='csa_level', new_value='Service')
         elif 500 <= item['csa_hours']:
@@ -280,7 +281,10 @@ def generate_student_report(student):  # Can take anything search can
         next_level = csa_levels_names[csa_levels_names.index(student.csa_level) + 1]
     except IndexError:
         next_level = 'Finished!'
-    rem_hours = csa_levels_hours[next_level] - student.csa_hours
+    if next_level != "Finished!":
+        rem_hours = csa_levels_hours[next_level] - student.csa_hours
+    else:
+        rem_hours = 0
     if rem_hours <= 0:
         rem_hours = 0
     template_loader = jinja2.FileSystemLoader(searchpath="templates\\")
