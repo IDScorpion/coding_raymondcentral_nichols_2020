@@ -76,8 +76,8 @@ def backup():  # Copies current database in data to the backups folder
     shutil.copyfile(r'data\Students.db', r'backups\Students({}).db'.format(get_date()))
 
 
-def restore(restore_file_date):  # Accepts date as string in format DD-MonthLong-YYYY, ex. 26-October-2019
-    shutil.copyfile(r'backups\Students({}).db'.format(restore_file_date), r'data\Students.db')
+def restore(restore_file):
+    shutil.copyfile(restore_file, r'data\Students.db')
 
 
 def setup():  # first time setup
@@ -161,7 +161,8 @@ def search_table(query):  # Searches table and creates a Student object with res
 
     # noinspection PyUnboundLocalVariable
     if len(student_list) >= 2:  # Provides for if 2 or more results are found.
-        name_list = []
+        return "Duplicate"
+        """name_list = []
         for item in student_list:
             name_list.append(item['name'])
         student = input("Which student are you looking for? {} Type a number based on list position,"
@@ -170,6 +171,7 @@ def search_table(query):  # Searches table and creates a Student object with res
         student_list[list_index].pop('id')
         student = build_student(student_list[list_index])
         return student
+        """
     try:
         student_list[0].pop('id')  # Gets rid of database ID number, not needed in student object
         student = build_student(student_list[0])
@@ -225,9 +227,10 @@ def edit_student(student, data_write=None, key=None,
     else:
         if isinstance(data_write, Student):
             student = vars(data_write)
+            print(student)
         table = return_table()
         table.update(student, ['student_id'])
-
+        # TODO: Fix name editing
 
 def delete_student(student):  # Takes anything search can
     search = search_table(student)
@@ -394,3 +397,16 @@ def return_student_list(sort_parameter=None, criteria=None):
         return students
     else:
         return None
+
+
+def duplicate_check(name):
+    table = return_table()
+    students = []
+    for row in table:
+        students.append(dict(row)["name"])
+    students.append(name)
+    if students.count(name) > 1:
+        return True
+    else:
+        return False
+

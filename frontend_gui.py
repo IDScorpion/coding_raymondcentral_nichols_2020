@@ -1,7 +1,7 @@
 import os
 from tkinter import *
 from tkinter import messagebox, filedialog
-
+from sqlite3 import IntegrityError
 import backend
 
 # TODO: Fix ability to make multiple boxes
@@ -214,9 +214,16 @@ class Window(Frame):
 
     def add_student_wrapper(self):
         try:
+            print(self.add_name_text.get())
+            print(backend.duplicate_check(self.add_name_text.get()))
             if self.add_name_text.get() == "":
                 messagebox.showerror(title="Error", message="Name is required.")
                 self.add_window.destroy()
+
+            elif backend.duplicate_check(self.add_name_text.get()) is True:
+                messagebox.showerror(title="Error", message="Name is already in database. Please use last names.")
+                self.add_window.destroy()
+
             else:
                 student = backend.Student(name=self.add_name_text.get(),
                                           grade=self.add_grade_int.get(),
@@ -227,6 +234,7 @@ class Window(Frame):
         except TclError:
             messagebox.showerror(title="Error", message=f"Invalid input for CSA Hours, input must be number")
             self.add_window.destroy()
+            encountered_error = True
             self.reload_ui()
 
     # noinspection DuplicatedCode,DuplicatedCode
@@ -259,10 +267,13 @@ class Window(Frame):
         edit_button.grid(column=0, row=5)
 
     def edit_student_wrapper(self):
+        # TODO: Add duplicate checking to this
         try:
+            print(self.edit_name_text.get())
             student = backend.Student(name=self.edit_name_text.get(),
                                       grade=self.edit_grade_int.get(),
                                       csa_hours=self.edit_csa_hours_flt.get())
+            print(student.name)
             backend.edit_student(self.current_student, data_write=student)
             self.edit_window.destroy()
             self.refresh_students_listbox()
@@ -328,11 +339,13 @@ class Window(Frame):
 
     def restore_backup(self):
         file = filedialog.askopenfile(initialdir=os.getcwd(), title="Select file",
-                                      filetypes=(("database files", "*.db"), ("all files", "*.*")))
-        filedate = file.name.partition("(")[2].partition(")")[0]
-        print(filedate)
-        backend.restore(filedate)
-        self.reload_ui()
+                                      filetypes=[("database files", "*.db")])
+        try:
+            file_path = file.name
+            backend.restore(file_path)
+            self.reload_ui()
+        except AttributeError:
+            return None
 
 
 # TODO: Add filter, keep working on listbox function, then add info area on right side
