@@ -1,7 +1,3 @@
-# TODO: write code
-# TODO: comments
-# TODO: ??
-# TODO: possibly split into files
 import datetime  # Used in various file names
 import os  # Used in creation and deletion of files and directories
 import random  # Used in the creation of random ids
@@ -9,7 +5,7 @@ import shutil  # Used in backup and restore
 
 import dataset  # Provides database
 import jinja2  # Used to interpret HTML template and fill data
-import pdfkit  # Creates PDF reports from HTML output by jinja2
+import pdfkit  # Creates PDF reports from HTML output by jinja2. Packaged within the project.
 
 
 class Student:  # defines what makes a student
@@ -63,7 +59,7 @@ def create_ids(name):  # creates randomized 8 digit ids
 
 def create_file(name):  # acts as simple way to create files
     with open(name, "w+"):
-        print('File', name, 'created.')
+        return True
 
 
 def get_date():  # Date is used commonly throughout the program
@@ -76,7 +72,7 @@ def backup():  # Copies current database in data to the backups folder
     shutil.copyfile(r'data\Students.db', r'backups\Students({}).db'.format(get_date()))
 
 
-def restore(restore_file):
+def restore(restore_file):  # Restores the chosen backup
     shutil.copyfile(restore_file, r'data\Students.db')
 
 
@@ -159,19 +155,6 @@ def search_table(query):  # Searches table and creates a Student object with res
         for row in student:
             student_list.append(dict(row))
 
-    # noinspection PyUnboundLocalVariable
-    if len(student_list) >= 2:  # Provides for if 2 or more results are found.
-        return "Duplicate"
-        """name_list = []
-        for item in student_list:
-            name_list.append(item['name'])
-        student = input("Which student are you looking for? {} Type a number based on list position,"
-                        " left to right, starting at 1: ".format(name_list))  # TODO: Remove when GUI ready
-        list_index = int(student) - 1
-        student_list[list_index].pop('id')
-        student = build_student(student_list[list_index])
-        return student
-        """
     try:
         student_list[0].pop('id')  # Gets rid of database ID number, not needed in student object
         student = build_student(student_list[0])
@@ -210,8 +193,9 @@ def add_student(student):  # Adds student to table. Can accept Student object or
         table.insert(student_dict)
 
 
-def edit_student(student, data_write=None, key=None,
-                 new_value=None):  # TODO: EDit this: Edits student in table. Can accept Student object or dictionary.
+def edit_student(student, data_write=None, key=None, new_value=None):
+    """Edits students within the database. Data can be presented as a dictionary or student, overwriting all using
+    data_write, or can modify one key using key and new_value parameters"""
     if data_write is None:
         if isinstance(student, Student):
             student_dict = vars(student)
@@ -226,20 +210,18 @@ def edit_student(student, data_write=None, key=None,
             table.update(student_dict, ['student_id'])
     else:
         if isinstance(data_write, Student):
-            student = vars(data_write)
-            print(student)
+            new_student = vars(data_write)
         table = return_table()
-        table.update(student, ['student_id'])
-        # TODO: Fix name editing
+        table.update(new_student, ['student_id'])
 
-def delete_student(student):  # Takes anything search can
+
+def delete_student(student):  # Searches the database for a student and deletes them.
     search = search_table(student)
     table = return_table()
-    print(search.student_id)
     table.delete(student_id=search.student_id)
 
 
-def math_csa_hours(student, hours):  # Can accept anything search_table can, performs arithmetic on csa hours.
+def math_csa_hours(student, hours):  # Searches the database and performs arithmetic on csa hours.
     table = return_table()
     student = search_table(student)
     try:
@@ -250,7 +232,7 @@ def math_csa_hours(student, hours):  # Can accept anything search_table can, per
         return None
 
 
-def edit_csa_hours(student, edit_value):  # Can accept anything search_table can. Directly edits CSA value to parameter.
+def edit_csa_hours(student, edit_value):  # Searches the database and directly edits CSA value to parameter edit_value.
     table = return_table()
     student = search_table(student)
     try:
@@ -261,7 +243,7 @@ def edit_csa_hours(student, edit_value):  # Can accept anything search_table can
         return None
 
 
-def graduate_csa_levels():  # Checks the database for anyone who has obtained a new level of the CSA..
+def graduate_csa_levels():  # Checks the database for anyone who has obtained a new level of the CSA.
     table = return_table()
     student_list = []
     for row in table:
@@ -277,44 +259,44 @@ def graduate_csa_levels():  # Checks the database for anyone who has obtained a 
             edit_student(item, key='csa_level', new_value='None')
 
 
-def generate_student_report(student):  # Can take anything search can
+def generate_student_report(student):  # Generates a student report using the templates in /templates
     graduate_csa_levels()
     student = search_table(student)
     try:
         next_level = csa_levels_names[csa_levels_names.index(student.csa_level) + 1]
     except IndexError:
-        next_level = 'Finished!'
+        next_level = "Finished!"
     if next_level != "Finished!":
         rem_hours = csa_levels_hours[next_level] - student.csa_hours
     else:
         rem_hours = 0
     if rem_hours <= 0:
         rem_hours = 0
-    template_loader = jinja2.FileSystemLoader(searchpath="templates\\")
+    template_loader = jinja2.FileSystemLoader(searchpath="templates\\")  # Loads the HTML template
     template_env = jinja2.Environment(loader=template_loader)
     template_file = "student_template_v2.html"
     template = template_env.get_template(template_file)
-    html_report = template.render(name=student.name,
+    html_report = template.render(name=student.name,  # Renders the template as HTML
                                   grade=student.grade,
                                   student_id=student.student_id,
                                   csa_hours=student.csa_hours,
                                   csa_level=student.csa_level,
                                   rem_hours=rem_hours)
     with open(r'reports\temp_html_report.html', 'w+') as html:
-        html.write(html_report)
+        html.write(html_report)  # Writes HTML to a temp file
     date_now = get_date()
-    css = [r'templates/css/idGeneratedStyles.css']
+    css = [r'templates/css/idGeneratedStyles.css']  # Links to the default CSS
     options = {
-        'quiet': ''
+        'quiet': ''  # Supresses PDFKit output.
     }
     pdfkit.from_file(r"reports\temp_html_report.html",
                      r'reports/{}_Student_Report_{}.pdf'.format(str(student.name).strip(), date_now),
-                     configuration=config,
+                     configuration=config,  # Links to local wkhtmltox install.
                      css=css, options=options)
-    os.remove(r'reports\temp_html_report.html')
+    os.remove(r'reports\temp_html_report.html') # Gets rid of the temp html file.
 
 
-def generate_program_report():  # Total enrolled, total hours, students per category, hours per
+def generate_program_report():  # Generates a general report of the program, similar to generate_student_report.
     graduate_csa_levels()
     table = return_table()
     students = []
@@ -384,7 +366,7 @@ def generate_program_report():  # Total enrolled, total hours, students per cate
     os.remove(r'reports\temp_html_report.html')
 
 
-def return_student_list(sort_parameter=None, criteria=None):
+def return_student_list(sort_parameter=None, criteria=None):  # Returns students as a list of dictionaries.
     table = return_table()
     students = []
     for row in table:
@@ -399,7 +381,7 @@ def return_student_list(sort_parameter=None, criteria=None):
         return None
 
 
-def duplicate_check(name):
+def duplicate_check(name):  # Checks the table for duplicate names.
     table = return_table()
     students = []
     for row in table:
@@ -409,4 +391,3 @@ def duplicate_check(name):
         return True
     else:
         return False
-
