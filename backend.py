@@ -65,11 +65,14 @@ def create_file(name):  # acts as simple way to create files
 def get_date():  # Date is used commonly throughout the program
     d = datetime.datetime.now()
     date_now = d.strftime("%d-%B-%Y")
+
     return date_now
 
-
-def backup():  # Copies current database in data to the backups folder
-    shutil.copyfile(r'data\Students.db', r'backups\Students({}).db'.format(get_date()))
+def backup(save_location=None):  # Copies current database in data to the backups folder
+    if save_location is None:
+        shutil.copyfile(r'data\Students.db', r'backups\Students({}).db'.format(get_date()))
+    else:
+        shutil.copyfile(r'data\Students.db', save_location)
 
 
 def restore(restore_file):  # Restores the chosen backup
@@ -293,7 +296,7 @@ def generate_student_report(student):  # Generates a student report using the te
                      r'reports/{}_Student_Report_{}.pdf'.format(str(student.name).strip(), date_now),
                      configuration=config,  # Links to local wkhtmltox install.
                      css=css, options=options)
-    os.remove(r'reports\temp_html_report.html') # Gets rid of the temp html file.
+    os.remove(r'reports\temp_html_report.html')  # Gets rid of the temp html file.
 
 
 def generate_program_report():  # Generates a general report of the program, similar to generate_student_report.

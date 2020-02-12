@@ -102,7 +102,10 @@ class Window(Frame):
 
         self.menubar.add_command(label="Refresh", command=self.reload_ui)
 
-        self.menubar.add_command(label="Restore Backup", command=self.restore_backup)
+        self.backup_menu = Menu(self.menubar)
+        self.backup_menu.add_command(label="Manual Backup", command=self.manual_backup)
+        self.backup_menu.add_command(label="Restore Backup", command=self.restore_backup)
+        self.menubar.add_cascade(label="Backup and Restore", menu=self.backup_menu)
 
         self.master.config(menu=self.menubar)
 
@@ -183,14 +186,22 @@ class Window(Frame):
             self.load_student()
         except AttributeError:
             self.listbox.selection_set(0)
+
         self.refresh_students_listbox()
         self.enable_buttons()
         self.purge_menus()
+
+    def set_default_vars(self):
+        self.add_hours_text.set(0.0)
+        self.add_name_text.set("")
+        self.add_grade_int.set(9)
+        self.add_csa_hours_flt.set(0.0)
 
     def add_student_dialog(self):  # Creates the dialog for adding students
         self.add_window = Toplevel()
         self.add_window.protocol("WM_DELETE_WINDOW", self.reload_ui)  # Sets exit behavior
         self.disable_buttons()  # Disables the left frame buttons so multiple boxes aren't able to display
+        self.set_default_vars()
 
         name_label = Label(self.add_window, text="Name")
         name_label.grid(column=0, row=0)
@@ -270,7 +281,7 @@ class Window(Frame):
         edit_button = Button(self.edit_window, text="Edit Student", command=self.edit_student_wrapper)
         edit_button.grid(column=0, row=5)
 
-    def edit_student_wrapper(self): # Similar to add_student, but makes sure the IDs match when editing
+    def edit_student_wrapper(self):  # Similar to add_student, but makes sure the IDs match when editing
         try:
             if backend.duplicate_check(self.edit_name_text.get()) is True and \
                     backend.search_table(self.edit_name_text.get()).student_id != self.current_student.student_id:
@@ -316,13 +327,13 @@ class Window(Frame):
                 backend.generate_student_report(self.current_student)
             messagebox.showinfo(title="Reports Generated", message="Your reports have been generated.")
 
-
     def program_report_wrapper(self):  # Generates program reports
         backend.generate_program_report()
 
         messagebox.showinfo(title="Report Generated", message="Your report has been generated.")
 
-    def add_hours_dialog(self): # Builds the add hours dialog
+    def add_hours_dialog(self):  # Builds the add hours dialog
+        self.set_default_vars()
         current_student = self.listbox.get(self.listbox.curselection())
 
         self.current_student = backend.search_table(current_student)
@@ -337,7 +348,7 @@ class Window(Frame):
         add_hours_button = Button(self.add_hours_window, text="Add", command=self.add_hours_wrapper)
         add_hours_button.grid(column=0, row=1)
 
-    def add_hours_wrapper(self): # Provides connections to backend
+    def add_hours_wrapper(self):  # Provides connections to backend
         try:
             backend.math_csa_hours(self.current_student, self.add_hours_text.get())
             self.add_hours_window.destroy()
@@ -346,6 +357,12 @@ class Window(Frame):
             messagebox.showerror(title="Error", message=f"Invalid input for CSA Hours, input must be number")
             self.add_hours_window.destroy()
             self.reload_ui()
+
+    def manual_backup(self):
+        file = filedialog.asksaveasfile(filetypes=[("Database files", "*.db")],
+                                        defaultextension=[("Database files", "*.db")])
+        file_name = r"{}".format(file.name)
+        backend.backup(save_location=file_name)
 
     def restore_backup(self):  # Provides ability to restore from backups by selecting file
         file = filedialog.askopenfile(initialdir=os.getcwd(), title="Select file",
