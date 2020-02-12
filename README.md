@@ -7,3 +7,5 @@ Download a zip file or clone using git. CD to the root directory of the project 
 If your reading this from Windows as a text file and want to read the documentation, here's the link: https://github.com/IDScorpion/coding_raymondcentral_nichols_2020/wiki
 
 See the wiki for tutorials and attributions.
+
+To Run: Open frontend_gui with Python.
